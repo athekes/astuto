@@ -16,12 +16,26 @@
 RSpec.configure do |config|
   # Reset Current instance and delete all tenants from test db
   # Create a new default tenant and set Current.tenant
-  config.before(:all) do
-    Current.reset
-    Tenant.delete_all
+  # config.before(:all) do
+  #   Current.reset
+  #   Tenant.delete_all
     
-    tenant = FactoryBot.create(:tenant)
-    Current.tenant = tenant
+  #   tenant = FactoryBot.create(:tenant)
+  #   Current.tenant = tenant
+  # end
+
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      tenant = FactoryBot.create(:tenant)
+      Current.tenant = tenant
+
+      example.run
+    end
   end
 
   # rspec-expectations config goes here. You can use an alternate
